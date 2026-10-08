@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FarmManagement.Api.Data;
 using FarmManagement.Api.Models;
 using FarmManagement.Api.DTOs;
+
 
 namespace FarmManagement.Api.Controllers
 {
@@ -94,8 +96,8 @@ namespace FarmManagement.Api.Controllers
                 UpdatedAt = visit.UpdatedAt
             });
         }
-        // POST  farm-visits
-        [HttpPost]
+        [Authorize]
+        [HttpPost] // POST farm-visits
         public async Task<ActionResult<FarmVisitResponseDto>> CreateFarmVisit(FarmVisitCreateDto dto)
         {
             var farmerExists = await _context.Farmers.AnyAsync(f => f.Id == dto.FarmerId);
@@ -144,8 +146,8 @@ namespace FarmManagement.Api.Controllers
             return CreatedAtAction(nameof(GetFarmVisit), new { id = visit.Id }, responseDto);
         }
 
-        // PUT farm visits id
-        [HttpPut("{id}")]
+        [Authorize]
+        [HttpPut("{id}")] // PUT farm visits id 
         public async Task<IActionResult> UpdateFarmVisit(int id, FarmVisitUpdateDto dto)
         {
             var visit = await _context.FarmVisits.FindAsync(id);
@@ -178,8 +180,8 @@ namespace FarmManagement.Api.Controllers
             return NoContent();
         }
 
-        // DELETE 
-        [HttpDelete("{id}")]
+        [Authorize]
+        [HttpDelete("{id}")] //DELETE
         public async Task<IActionResult> DeleteFarmVisit(int id)
         {
             var visit = await _context.FarmVisits.FindAsync(id);

@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FarmManagement.Api.Data;
 using FarmManagement.Api.Models;
 using FarmManagement.Api.DTOs;
+
 
 namespace FarmManagement.Api.Controllers
 {
@@ -80,8 +82,8 @@ namespace FarmManagement.Api.Controllers
             });
         }
 
-        // POST api  farmers
-        [HttpPost]
+        [Authorize]
+        [HttpPost] // POST api farmers
         public async Task<ActionResult<FarmerResponseDto>> CreateFarmer(FarmerCreateDto dto)
         {
             var exists = await _context.Farmers.AnyAsync(f => f.NationalId == dto.NationalId);
@@ -115,8 +117,8 @@ namespace FarmManagement.Api.Controllers
             return CreatedAtAction(nameof(GetFarmer), new { id = farmer.Id }, responseDto);
         }
 
-        // PUT farmers id 
-        [HttpPut("{id}")]
+        [Authorize]
+        [HttpPut("{id}")] // PUT farmers id 
         public async Task<IActionResult> UpdateFarmer(int id, FarmerUpdateDto dto)
         {
             var farmer = await _context.Farmers.FindAsync(id);
@@ -137,8 +139,8 @@ namespace FarmManagement.Api.Controllers
             return NoContent();
         }
 
-        // DELETE api farmers id
-        [HttpDelete("{id}")]
+        [Authorize]
+        [HttpDelete("{id}")]  //DELETE api farmers id
         public async Task<IActionResult> DeleteFarmer(int id)
         {
             var farmer = await _context.Farmers
