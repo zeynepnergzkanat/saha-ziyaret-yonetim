@@ -11,6 +11,7 @@ namespace FarmManagement.Api.Data
 
         public DbSet<Farmer> Farmers { get; set; }
         public DbSet<FarmVisit> FarmVisits { get; set; }
+        public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -23,6 +24,11 @@ namespace FarmManagement.Api.Data
                 .WithMany(f => f.FarmVisits)
                 .HasForeignKey(fv => fv.FarmerId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<User>()
+              .HasIndex(u => u.Username)
+               .IsUnique();
+
         }
     }
 }
