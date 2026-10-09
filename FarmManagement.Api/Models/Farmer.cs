@@ -16,7 +16,7 @@
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        // Bir çiftçinin birden fazla saha ziyareti olabilit
+        // bir çiftçinin birden fazla saha ziyareti olabilit
         public ICollection<FarmVisit> FarmVisits { get; set; } = new List<FarmVisit>();
     }
 }
