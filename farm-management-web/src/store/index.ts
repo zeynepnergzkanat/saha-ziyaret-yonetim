@@ -1,5 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./authSlice";
+import dashboardReducer from "./dashboardSlice";
 import farmersReducer from "./farmersSlice";
 import visitsReducer from "./visitsSlice";
 
@@ -7,6 +8,7 @@ export const makeStore = () =>
   configureStore({
     reducer: {
       auth: authReducer,
+      dashboard: dashboardReducer,
       farmers: farmersReducer,
       visits: visitsReducer,
     },

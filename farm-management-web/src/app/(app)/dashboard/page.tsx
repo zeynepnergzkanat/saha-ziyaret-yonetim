@@ -1,14 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import api from "@/lib/api";
+import { useEffect } from "react";
+import DataTable from "@/components/ui/DataTable";
+import type { Column } from "@/components/ui/DataTable";
+import { fetchDashboard } from "@/store/dashboardSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   formatDate,
   statusBadgeClasses,
   statusLabels,
   typeLabels,
 } from "@/lib/labels";
-import type { DashboardSummary } from "@/types";
+import type { FarmVisit } from "@/types";
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
@@ -19,31 +22,40 @@ function StatCard({ label, value }: { label: string; value: number }) {
   );
 }
 
+const columns: Column<FarmVisit>[] = [
+  { header: "Çiftçi", cell: (visit) => visit.farmerName ?? "-" },
+  { header: "Tarih", cell: (visit) => formatDate(visit.visitDate) },
+  { header: "Tür", cell: (visit) => typeLabels[visit.visitType] },
+  {
+    header: "Durum",
+    cell: (visit) => (
+      <span
+        className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusBadgeClasses[visit.status]}`}
+      >
+        {statusLabels[visit.status]}
+      </span>
+    ),
+  },
+];
+
 export default function DashboardPage() {
-  const [data, setData] = useState<DashboardSummary | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useAppDispatch();
+  const { data, status, error } = useAppSelector((state) => state.dashboard);
 
   useEffect(() => {
-    api
-      .get<DashboardSummary>("/api/dashboard/summary")
-      .then((res) => setData(res.data))
-      .catch(() =>
-        setError("Dashboard verileri yüklenemedi. API çalışıyor mu?")
-      )
-      .finally(() => setLoading(false));
-  }, []);
+    dispatch(fetchDashboard());
+  }, [dispatch]);
 
-  if (loading) {
-    return <p className="text-slate-500">Yükleniyor...</p>;
-  }
-
-  if (error || !data) {
+  if (status === "failed" && !data) {
     return (
       <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
         {error ?? "Veri bulunamadı."}
       </p>
     );
+  }
+
+  if (!data) {
+    return <p className="text-slate-500">Yükleniyor...</p>;
   }
 
   return (
@@ -61,40 +73,12 @@ export default function DashboardPage() {
         Önümüzdeki 7 gündeki ziyaretler
       </h2>
 
-      {data.upcomingVisits.length === 0 ? (
-        <p className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500">
-          Önümüzdeki 7 gün için planlanmış ziyaret yok.
-        </p>
-      ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-slate-600">
-              <tr>
-                <th className="px-4 py-3 font-medium">Çiftçi</th>
-                <th className="px-4 py-3 font-medium">Tarih</th>
-                <th className="px-4 py-3 font-medium">Tür</th>
-                <th className="px-4 py-3 font-medium">Durum</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.upcomingVisits.map((visit) => (
-                <tr key={visit.id} className="border-t border-slate-100">
-                  <td className="px-4 py-3">{visit.farmerName ?? "-"}</td>
-                  <td className="px-4 py-3">{formatDate(visit.visitDate)}</td>
-                  <td className="px-4 py-3">{typeLabels[visit.visitType]}</td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusBadgeClasses[visit.status]}`}
-                    >
-                      {statusLabels[visit.status]}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <DataTable
+        columns={columns}
+        rows={data.upcomingVisits}
+        rowKey={(visit) => visit.id}
+        emptyMessage="Önümüzdeki 7 gün için planlanmış ziyaret yok."
+      />
     </div>
   );
 }
