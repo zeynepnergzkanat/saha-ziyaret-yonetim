@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 import type { FormEvent } from "react";
+import Button from "@/components/ui/Button";
+import FormField from "@/components/ui/FormField";
+import Input, { controlClass } from "@/components/ui/Input";
+import Modal from "@/components/ui/Modal";
 import { useAppDispatch } from "@/store/hooks";
 import { createVisit, updateVisit } from "@/store/visitsSlice";
 import { unwrapMessage } from "@/lib/errors";
@@ -60,9 +64,6 @@ interface Props {
   onSaved: () => void;
 }
 
-const inputClass =
-  "w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-emerald-600";
-
 export default function VisitFormModal({ visit, farmers, onClose, onSaved }: Props) {
   const dispatch = useAppDispatch();
   const [values, setValues] = useState<FormValues>({
@@ -117,26 +118,15 @@ export default function VisitFormModal({ visit, farmers, onClose, onSaved }: Pro
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 px-4 py-6">
-      <form
-        onSubmit={handleSubmit}
-        noValidate
-        className="w-full max-w-md rounded-xl bg-white p-6 shadow-lg"
-      >
-        <h2 className="mb-4 text-lg font-semibold">
-          {visit ? "Ziyareti Düzenle" : "Yeni Ziyaret"}
-        </h2>
-
-        <div className="mb-3">
-          <label className="mb-1 block text-sm font-medium" htmlFor="farmerId">
-            Çiftçi
-          </label>
+    <Modal title={visit ? "Ziyareti Düzenle" : "Yeni Ziyaret"}>
+      <form onSubmit={handleSubmit} noValidate>
+        <FormField id="farmerId" label="Çiftçi" error={errors.farmerId}>
           <select
             id="farmerId"
             value={values.farmerId}
             disabled={!!visit}
             onChange={(e) => set("farmerId", e.target.value)}
-            className={`${inputClass} disabled:bg-slate-100`}
+            className={`${controlClass} disabled:bg-slate-100`}
           >
             <option value="">Çiftçi seçin</option>
             {farmers.map((farmer) => (
@@ -145,37 +135,24 @@ export default function VisitFormModal({ visit, farmers, onClose, onSaved }: Pro
               </option>
             ))}
           </select>
-          {errors.farmerId && (
-            <p className="mt-1 text-xs text-red-600">{errors.farmerId}</p>
-          )}
-        </div>
+        </FormField>
 
-        <div className="mb-3">
-          <label className="mb-1 block text-sm font-medium" htmlFor="visitDate">
-            Ziyaret tarihi
-          </label>
-          <input
-            id="visitDate"
-            type="date"
-            value={values.visitDate}
-            onChange={(e) => set("visitDate", e.target.value)}
-            className={inputClass}
-          />
-          {errors.visitDate && (
-            <p className="mt-1 text-xs text-red-600">{errors.visitDate}</p>
-          )}
-        </div>
+        <Input
+          id="visitDate"
+          label="Ziyaret tarihi"
+          type="date"
+          value={values.visitDate}
+          onChange={(e) => set("visitDate", e.target.value)}
+          error={errors.visitDate}
+        />
 
-        <div className="mb-3 grid grid-cols-2 gap-3">
-          <div>
-            <label className="mb-1 block text-sm font-medium" htmlFor="visitType">
-              Tür
-            </label>
+        <div className="grid grid-cols-2 gap-3">
+          <FormField id="visitType" label="Tür">
             <select
               id="visitType"
               value={values.visitType}
               onChange={(e) => set("visitType", e.target.value as VisitType)}
-              className={inputClass}
+              className={controlClass}
             >
               {(Object.keys(typeLabels) as VisitType[]).map((type) => (
                 <option key={type} value={type}>
@@ -183,16 +160,13 @@ export default function VisitFormModal({ visit, farmers, onClose, onSaved }: Pro
                 </option>
               ))}
             </select>
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium" htmlFor="status">
-              Durum
-            </label>
+          </FormField>
+          <FormField id="status" label="Durum" error={errors.status}>
             <select
               id="status"
               value={values.status}
               onChange={(e) => set("status", e.target.value as VisitStatus)}
-              className={inputClass}
+              className={controlClass}
             >
               {statusOptions.map((status) => (
                 <option key={status} value={status}>
@@ -200,41 +174,27 @@ export default function VisitFormModal({ visit, farmers, onClose, onSaved }: Pro
                 </option>
               ))}
             </select>
-          </div>
+          </FormField>
         </div>
-        {errors.status && (
-          <p className="mb-3 text-xs text-red-600">{errors.status}</p>
-        )}
 
-        <div className="mb-3">
-          <label className="mb-1 block text-sm font-medium" htmlFor="notes">
-            Not
-          </label>
+        <FormField id="notes" label="Not" error={errors.notes}>
           <textarea
             id="notes"
             rows={3}
             value={values.notes}
             onChange={(e) => set("notes", e.target.value)}
-            className={inputClass}
+            className={controlClass}
           />
-          {errors.notes && <p className="mt-1 text-xs text-red-600">{errors.notes}</p>}
-        </div>
+        </FormField>
 
-        <div className="mb-3">
-          <label className="mb-1 block text-sm font-medium" htmlFor="nextVisitDate">
-            Sonraki ziyaret tarihi (isteğe bağlı)
-          </label>
-          <input
-            id="nextVisitDate"
-            type="date"
-            value={values.nextVisitDate}
-            onChange={(e) => set("nextVisitDate", e.target.value)}
-            className={inputClass}
-          />
-          {errors.nextVisitDate && (
-            <p className="mt-1 text-xs text-red-600">{errors.nextVisitDate}</p>
-          )}
-        </div>
+        <Input
+          id="nextVisitDate"
+          label="Sonraki ziyaret tarihi (isteğe bağlı)"
+          type="date"
+          value={values.nextVisitDate}
+          onChange={(e) => set("nextVisitDate", e.target.value)}
+          error={errors.nextVisitDate}
+        />
 
         {serverError && (
           <p className="mb-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -243,22 +203,14 @@ export default function VisitFormModal({ visit, farmers, onClose, onSaved }: Pro
         )}
 
         <div className="mt-5 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
-          >
+          <Button variant="secondary" onClick={onClose}>
             Vazgeç
-          </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
-          >
+          </Button>
+          <Button type="submit" disabled={saving}>
             {saving ? "Kaydediliyor..." : "Kaydet"}
-          </button>
+          </Button>
         </div>
       </form>
-    </div>
+    </Modal>
   );
 }

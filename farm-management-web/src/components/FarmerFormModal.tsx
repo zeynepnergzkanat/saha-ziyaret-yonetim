@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import type { FormEvent } from "react";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import Modal from "@/components/ui/Modal";
 import { useAppDispatch } from "@/store/hooks";
 import { createFarmer, updateFarmer } from "@/store/farmersSlice";
 import { unwrapMessage } from "@/lib/errors";
@@ -93,35 +96,21 @@ export default function FarmerFormModal({ farmer, onClose, onSaved }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <form
-        onSubmit={handleSubmit}
-        noValidate
-        className="w-full max-w-md rounded-xl bg-white p-6 shadow-lg"
-      >
-        <h2 className="mb-4 text-lg font-semibold">
-          {farmer ? "Çiftçiyi Düzenle" : "Yeni Çiftçi"}
-        </h2>
-
+    <Modal title={farmer ? "Çiftçiyi Düzenle" : "Yeni Çiftçi"}>
+      <form onSubmit={handleSubmit} noValidate>
         {fields.map((field) => (
-          <div key={field.name} className="mb-3">
-            <label className="mb-1 block text-sm font-medium" htmlFor={field.name}>
-              {field.label}
-            </label>
-            <input
-              id={field.name}
-              value={values[field.name]}
-              maxLength={field.maxLength}
-              placeholder={field.placeholder}
-              onChange={(e) =>
-                setValues((prev) => ({ ...prev, [field.name]: e.target.value }))
-              }
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-emerald-600"
-            />
-            {errors[field.name] && (
-              <p className="mt-1 text-xs text-red-600">{errors[field.name]}</p>
-            )}
-          </div>
+          <Input
+            key={field.name}
+            id={field.name}
+            label={field.label}
+            value={values[field.name]}
+            maxLength={field.maxLength}
+            placeholder={field.placeholder}
+            error={errors[field.name]}
+            onChange={(e) =>
+              setValues((prev) => ({ ...prev, [field.name]: e.target.value }))
+            }
+          />
         ))}
 
         {serverError && (
@@ -131,22 +120,14 @@ export default function FarmerFormModal({ farmer, onClose, onSaved }: Props) {
         )}
 
         <div className="mt-5 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
-          >
+          <Button variant="secondary" onClick={onClose}>
             Vazgeç
-          </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
-          >
+          </Button>
+          <Button type="submit" disabled={saving}>
             {saving ? "Kaydediliyor..." : "Kaydet"}
-          </button>
+          </Button>
         </div>
       </form>
-    </div>
+    </Modal>
   );
 }
