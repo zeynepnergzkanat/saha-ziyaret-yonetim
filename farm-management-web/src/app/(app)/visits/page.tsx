@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 import VisitFormModal from "@/components/VisitFormModal";
+import Button from "@/components/ui/Button";
+import DataTable from "@/components/ui/DataTable";
+import type { Column } from "@/components/ui/DataTable";
+import Pagination from "@/components/ui/Pagination";
 import api from "@/lib/api";
 import { unwrapMessage } from "@/lib/errors";
 import {
@@ -88,16 +92,50 @@ export default function VisitsPage() {
 
   const hasFilters = Object.values(filters).some((v) => v !== "");
 
+  const columns: Column<FarmVisit>[] = [
+    { header: "Çiftçi", cell: (visit) => visit.farmerName ?? "-" },
+    { header: "Tarih", cell: (visit) => formatDate(visit.visitDate) },
+    { header: "Tür", cell: (visit) => typeLabels[visit.visitType] },
+    {
+      header: "Durum",
+      cell: (visit) => (
+        <span
+          className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusBadgeClasses[visit.status]}`}
+        >
+          {statusLabels[visit.status]}
+        </span>
+      ),
+    },
+    { header: "Sonraki ziyaret", cell: (visit) => formatDate(visit.nextVisitDate) },
+    {
+      header: "Not",
+      cell: (visit) => (
+        <span className="block max-w-[200px] truncate" title={visit.notes ?? ""}>
+          {visit.notes ?? "-"}
+        </span>
+      ),
+    },
+    {
+      header: "İşlemler",
+      align: "right",
+      cell: (visit) => (
+        <>
+          <Button variant="link" className="mr-3" onClick={() => setModal({ visit })}>
+            Düzenle
+          </Button>
+          <Button variant="dangerLink" onClick={() => handleDelete(visit)}>
+            Sil
+          </Button>
+        </>
+      ),
+    },
+  ];
+
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">Ziyaretler</h1>
-        <button
-          onClick={() => setModal({ visit: null })}
-          className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
-        >
-          Yeni Ziyaret
-        </button>
+        <Button onClick={() => setModal({ visit: null })}>Yeni Ziyaret</Button>
       </div>
 
       <div className="mb-4 flex flex-wrap items-end gap-3">
@@ -162,15 +200,15 @@ export default function VisitsPage() {
           />
         </div>
         {hasFilters && (
-          <button
+          <Button
+            variant="secondary"
             onClick={() => {
               setFilters(emptyFilters);
               setPage(1);
             }}
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
           >
             Filtreleri temizle
-          </button>
+          </Button>
         )}
       </div>
 
@@ -185,92 +223,19 @@ export default function VisitsPage() {
         </p>
       )}
 
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-slate-600">
-            <tr>
-              <th className="px-4 py-3 font-medium">Çiftçi</th>
-              <th className="px-4 py-3 font-medium">Tarih</th>
-              <th className="px-4 py-3 font-medium">Tür</th>
-              <th className="px-4 py-3 font-medium">Durum</th>
-              <th className="px-4 py-3 font-medium">Sonraki ziyaret</th>
-              <th className="px-4 py-3 font-medium">Not</th>
-              <th className="px-4 py-3 text-right font-medium">İşlemler</th>
-            </tr>
-          </thead>
-          <tbody>
-            {status === "loading" && items.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-slate-500">
-                  Yükleniyor...
-                </td>
-              </tr>
-            ) : items.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-slate-500">
-                  Kayıt bulunamadı.
-                </td>
-              </tr>
-            ) : (
-              items.map((visit) => (
-                <tr key={visit.id} className="border-t border-slate-100">
-                  <td className="px-4 py-3">{visit.farmerName ?? "-"}</td>
-                  <td className="px-4 py-3">{formatDate(visit.visitDate)}</td>
-                  <td className="px-4 py-3">{typeLabels[visit.visitType]}</td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusBadgeClasses[visit.status]}`}
-                    >
-                      {statusLabels[visit.status]}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">{formatDate(visit.nextVisitDate)}</td>
-                  <td className="max-w-[200px] truncate px-4 py-3" title={visit.notes ?? ""}>
-                    {visit.notes ?? "-"}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => setModal({ visit })}
-                      className="mr-3 text-emerald-700 hover:underline"
-                    >
-                      Düzenle
-                    </button>
-                    <button
-                      onClick={() => handleDelete(visit)}
-                      className="text-red-600 hover:underline"
-                    >
-                      Sil
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        columns={columns}
+        rows={items}
+        rowKey={(visit) => visit.id}
+        loading={status === "loading"}
+      />
 
-      <div className="mt-4 flex items-center justify-between text-sm text-slate-600">
-        <span>Toplam {totalCount} kayıt</span>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page <= 1}
-            className="rounded-md border border-slate-300 px-3 py-1 hover:bg-slate-100 disabled:opacity-50"
-          >
-            Önceki
-          </button>
-          <span>
-            Sayfa {page} / {totalPages}
-          </span>
-          <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page >= totalPages}
-            className="rounded-md border border-slate-300 px-3 py-1 hover:bg-slate-100 disabled:opacity-50"
-          >
-            Sonraki
-          </button>
-        </div>
-      </div>
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        onPageChange={(next) => setPage(Math.min(Math.max(1, next), totalPages))}
+      />
 
       {modal && (
         <VisitFormModal
