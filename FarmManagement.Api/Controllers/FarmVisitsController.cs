@@ -22,13 +22,18 @@ namespace FarmManagement.Api.Controllers
         // GET
         [HttpGet]
         public async Task<ActionResult<PagedResult<FarmVisitResponseDto>>> GetFarmVisits(
+
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
             [FromQuery] VisitStatus? status = null,
             [FromQuery] int? farmerId = null,
             [FromQuery] DateTime? startDate = null,
             [FromQuery] DateTime? endDate = null)
+
         {
+            if (!PagingRules.IsValid(page, pageSize))
+                return BadRequest(new { message = PagingRules.ErrorMessage });
+
             var query = _context.FarmVisits.Include(v => v.Farmer).AsQueryable();
 
             if (status.HasValue)

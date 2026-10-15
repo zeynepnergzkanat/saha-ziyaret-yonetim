@@ -108,4 +108,19 @@ public class FarmersControllerTests
         Assert.Single(paged.Items);
         Assert.Equal("Test Ciftci B", paged.Items[0].FullName);
     }
+
+    [Theory]
+    [InlineData(0, 10)]
+    [InlineData(-1, 10)]
+    [InlineData(1, 0)]
+    [InlineData(1, 1001)]
+    public async Task GetFarmers_InvalidPaging_ReturnsBadRequest(int page, int pageSize)
+    {
+        using var context = TestDb.Create();
+        var controller = new FarmersController(context);
+
+        var result = await controller.GetFarmers(page: page, pageSize: pageSize, search: null);
+
+        Assert.IsType<BadRequestObjectResult>(result.Result);
+    }
 }

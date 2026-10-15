@@ -25,7 +25,11 @@ namespace FarmManagement.Api.Controllers
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
             [FromQuery] string? search = null)
+
         {
+            if (!PagingRules.IsValid(page, pageSize))
+                return BadRequest(new { message = PagingRules.ErrorMessage });
+
             var query = _context.Farmers.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))

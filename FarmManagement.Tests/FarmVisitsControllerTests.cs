@@ -73,4 +73,19 @@ public class FarmVisitsControllerTests
 
         Assert.IsType<BadRequestObjectResult>(result);
     }
+
+    [Theory]
+    [InlineData(0, 10)]
+    [InlineData(-1, 10)]
+    [InlineData(1, 0)]
+    [InlineData(1, 1001)]
+    public async Task GetFarmVisits_InvalidPaging_ReturnsBadRequest(int page, int pageSize)
+    {
+        using var context = TestDb.Create();
+        var controller = new FarmVisitsController(context);
+
+        var result = await controller.GetFarmVisits(page: page, pageSize: pageSize);
+
+        Assert.IsType<BadRequestObjectResult>(result.Result);
+    }
 }
