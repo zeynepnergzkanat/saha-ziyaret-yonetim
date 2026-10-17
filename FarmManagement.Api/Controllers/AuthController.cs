@@ -20,17 +20,19 @@ namespace FarmManagement.Api.Controllers
             _tokenService = tokenService;
         }
 
-        // POST api auth register
+        // POST api auth  register
         [HttpPost("register")]
         public async Task<IActionResult> Register(LoginDto dto)
         {
-            var exists = await _context.Users.AnyAsync(u => u.Username == dto.Username);
+            var username = dto.Username.Trim();
+
+            var exists = await _context.Users.AnyAsync(u => u.Username == username);
             if (exists)
                 return Conflict(new { message = "Bu kullanıcı adı zaten kayıtlı." });
 
             var user = new User
             {
-                Username = dto.Username,
+                Username = username,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                 Role = UserRole.Admin,
                 CreatedAt = DateTime.UtcNow
@@ -46,7 +48,9 @@ namespace FarmManagement.Api.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<LoginResponseDto>> Login(LoginDto dto)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
+            var username = dto.Username.Trim();
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
 
             if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
                 return Unauthorized(new { message = "Kullanıcı adı veya şifre hatalı." });

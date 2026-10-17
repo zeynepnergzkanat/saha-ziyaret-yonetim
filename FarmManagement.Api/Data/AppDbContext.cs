@@ -29,6 +29,14 @@ namespace FarmManagement.Api.Data
               .HasIndex(u => u.Username)
                .IsUnique();
 
+            modelBuilder.Entity<FarmVisit>()
+             .Property(v => v.VisitDate)
+              .HasColumnType("date");
+
+            modelBuilder.Entity<FarmVisit>()
+                .Property(v => v.NextVisitDate)
+                .HasColumnType("date");
+
         }
     }
 }
